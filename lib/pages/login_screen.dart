@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mussomobile/models/register_user_dto.dart';
-import 'package:mussomobile/pages/formation_screen.dart';
+
 import 'package:mussomobile/pages/home_page.dart';
 import 'package:mussomobile/pages/legal_advice_screen.dart';
 import 'package:mussomobile/pages/sign_up_screen.dart';
