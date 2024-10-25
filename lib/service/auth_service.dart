@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:mussomobile/models/register_user_dto.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
@@ -9,6 +8,8 @@ class AuthService {
 
   // Méthode pour s'inscrire (ajouter un utilisateur)
   Future<void> signup(RegisterUserDto input, int roleId) async {
+    print('Tentative d\'inscription pour le rôle ID: $roleId avec les données: ${input.toJson()}');
+    
     final response = await http.post(
       Uri.parse('$baseUrl/superadmin/ajout/$roleId'), // Utilisation du rôle ID
       headers: <String, String>{
@@ -18,12 +19,16 @@ class AuthService {
     );
 
     if (response.statusCode != 201) {
+      print('Échec de l\'inscription: ${response.body}');
       throw Exception('Échec de l\'inscription: ${response.body}');
     }
+    print('Inscription réussie: ${response.body}');
   }
 
   // Méthode pour se connecter
   Future<Map<String, dynamic>> login(String email, String password) async {
+    print('Tentative de connexion avec email: $email');
+
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
@@ -36,38 +41,50 @@ class AuthService {
         }),
       );
 
+      print('Réponse de connexion: ${response.statusCode} - ${response.body}');
+
       if (response.statusCode == 200) {
-        print("Response body: ${response.body}"); // Imprimez la réponse
         Map<String, dynamic> authData = json.decode(response.body);
 
-        // Assurez-vous que le rôle est bien un objet avec un ID et un nom
         if (authData.containsKey('role') && authData['role'] is Map) {
-          Role userRole = Role.fromJson(authData['role']); // Rôle transformé en objet Role
-          await _saveUserRole(userRole); // Sauvegarder le rôle en tant qu'objet
-        } else {
-          throw Exception('Rôle non trouvé ou de type incorrect');
+          Role userRole = Role.fromJson(authData['role']);
+          await _saveUserRole(userRole);
+          print('Rôle utilisateur sauvegardé: ${userRole.toJson()}');
         }
 
-        await _saveToken(authData['token']); // Sauvegarde du token
-        return authData; // Retourner les données d'authentification
+        await _saveToken(authData['token']);
+        await _saveUserInfo(authData); // Sauvegarder les infos utilisateur
+        return authData;
       } else {
+        print('Échec de la connexion: ${response.body}');
         throw Exception('Échec de la connexion: ${response.body}');
       }
     } catch (e) {
+      print('Erreur lors de la connexion: $e');
       throw Exception('Erreur: $e');
     }
+  }
+
+  // Sauvegarder les informations de l'utilisateur
+  Future<void> _saveUserInfo(Map<String, dynamic> userInfo) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userInfo', jsonEncode(userInfo)); // Stocker les infos en JSON
+    print('Informations utilisateur sauvegardées: $userInfo');
   }
 
   // Sauvegarder le token JWT dans le stockage local
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('jwt', token);
+    print('Token sauvegardé: $token');
   }
 
   // Récupérer le token depuis le stockage local
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('jwt');
+    String? token = prefs.getString('jwt');
+    print('Récupération du token: $token');
+    return token;
   }
 
   // Méthode pour se déconnecter
@@ -75,18 +92,22 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt');
     await prefs.remove('userRole'); // Supprimer le rôle à la déconnexion
+    print('Déconnexion réussie, token et rôle supprimés.');
   }
 
   // Sauvegarder le rôle de l'utilisateur dans le stockage local (en JSON)
   Future<void> _saveUserRole(Role role) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('userRole', jsonEncode(role.toJson())); // Sauvegarde du rôle en JSON
+    print('Rôle sauvegardé: ${role.toJson()}');
   }
 
   // Méthode pour récupérer le rôle de l'utilisateur depuis le stockage local
   Future<Role?> getUserRole() async {
     final prefs = await SharedPreferences.getInstance();
     String? roleJson = prefs.getString('userRole');
+    print('Récupération du rôle utilisateur: $roleJson');
+
     if (roleJson != null) {
       return Role.fromJson(jsonDecode(roleJson)); // Conversion du JSON en Role
     }

@@ -1,4 +1,5 @@
 class RegisterUserDto {
+  int? id; // Champ ID, facultatif lors de l'enregistrement
   String nom;
   String prenom;
   String email;
@@ -8,6 +9,7 @@ class RegisterUserDto {
 
   // Constructeur
   RegisterUserDto({
+    this.id, // L'ID peut être nul lors de l'enregistrement
     required this.nom,
     required this.prenom,
     required this.email,
@@ -19,6 +21,7 @@ class RegisterUserDto {
   // Méthode pour convertir l'objet en JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id, // Inclure l'ID dans le JSON, s'il existe
       'nom': nom,
       'prenom': prenom,
       'email': email,
@@ -31,6 +34,7 @@ class RegisterUserDto {
   // Méthode pour créer un objet à partir de JSON
   factory RegisterUserDto.fromJson(Map<String, dynamic> json) {
     return RegisterUserDto(
+      id: json['id'], // Récupérer l'ID à partir du JSON
       nom: json['nom'],
       prenom: json['prenom'],
       email: json['email'],

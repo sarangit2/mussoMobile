@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mussomobile/models/formation.dart';
-import 'course_details_screen.dart'; // Import de l'écran des détails de la formation
+import 'package:mussomobile/service/auth_service.dart';
+import 'package:mussomobile/service/inscription_service.dart'; // Import du service d'inscription
+import 'package:shared_preferences/shared_preferences.dart'; // Import pour SharedPreferences
 
 class TrainingScreen extends StatefulWidget {
   @override
@@ -11,15 +13,46 @@ class TrainingScreen extends StatefulWidget {
 
 class _TrainingScreenState extends State<TrainingScreen> {
   late Future<List<Formation>> formations;
-  late Future<Set<String>> categories; // Variable pour les catégories
+  late Future<Map<String, int>> categoriesWithCount;
+  String searchQuery = "";
+  final AuthService _authService = AuthService();
+  late InscriptionService _inscriptionService; // Déclaration du service d'inscription
+  String _userEmail = ''; // Variable pour stocker l'email de l'utilisateur
+  int _userId = 0; // Variable pour stocker l'ID de l'utilisateur
 
   @override
   void initState() {
     super.initState();
     formations = fetchFormations();
-    categories = fetchCategories(); // Récupérer les catégories
+    categoriesWithCount = fetchCategoriesWithCount();
+    _loadUserInfo(); // Charger les informations de l'utilisateur lors de l'initialisation
+    _initializeInscriptionService(); // Initialiser le service d'inscription avec le token
   }
 
+  Future<void> _initializeInscriptionService() async {
+    String? token = await _authService.getToken(); // Récupérer le token
+    if (token != null) {
+      _inscriptionService = InscriptionService('http://localhost:8080', token); // Initialiser le service avec le token
+    } else {
+      // Gérer le cas où le token est null (ex: déconnexion)
+      print('Aucun token trouvé, utilisateur non connecté.');
+      // Vous pouvez rediriger vers l'écran de connexion ici si nécessaire
+    }
+  }
+
+  Future<void> _loadUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? userInfoJson = prefs.getString('userInfo');
+    if (userInfoJson != null) {
+      Map<String, dynamic> userInfo = jsonDecode(userInfoJson);
+      setState(() {
+        _userEmail = userInfo['email'] ?? ''; // Récupérer l'email des infos utilisateur
+        _userId = userInfo['id'] ?? 0; // Récupérer l'ID des infos utilisateur
+      });
+    }
+  }
+
+  // Méthode pour récupérer la liste des formations
   Future<List<Formation>> fetchFormations() async {
     final response = await http.get(Uri.parse('http://localhost:8080/api/formations/liste'));
 
@@ -27,19 +60,21 @@ class _TrainingScreenState extends State<TrainingScreen> {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((formation) => Formation.fromJson(formation)).toList();
     } else {
-      throw Exception('Failed to load formations');
+      throw Exception('Échec du chargement des formations');
     }
   }
 
-  Future<Set<String>> fetchCategories() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/api/categories/liste'));
+  // Méthode pour récupérer les catégories avec le nombre de formations
+  Future<Map<String, int>> fetchCategoriesWithCount() async {
+    final formations = await fetchFormations();
+    Map<String, int> categoryCounts = {};
 
-    if (response.statusCode == 200) {
-      List jsonResponse = json.decode(response.body);
-      return jsonResponse.map<String>((categorie) => categorie.toString()).toSet();
-    } else {
-      throw Exception('Failed to load categories');
+    for (var formation in formations) {
+      String category = formation.categorie;
+      categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
     }
+
+    return categoryCounts;
   }
 
   @override
@@ -47,12 +82,12 @@ class _TrainingScreenState extends State<TrainingScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: Text('Formations', style: TextStyle(color: Colors.white)),
+        title: Text('Formations', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context); // Retour en arrière
+            Navigator.pop(context);
           },
         ),
       ),
@@ -61,21 +96,26 @@ class _TrainingScreenState extends State<TrainingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FutureBuilder<Set<String>>(
-              future: categories,
+            // Afficher l'email et l'ID de l'utilisateur
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Text("Email : $_userEmail\nID Utilisateur : $_userId", style: TextStyle(fontSize: 18)),
+            ),
+            FutureBuilder<Map<String, int>>(
+              future: categoriesWithCount,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
+                  return Text('Erreur: ${snapshot.error}');
                 } else {
                   return SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: snapshot.data!.map((category) {
+                      children: snapshot.data!.entries.map((entry) {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
-                          child: CategoryButton(category, 0),
+                          child: CategoryButton(entry.key, entry.value),
                         );
                       }).toList(),
                     ),
@@ -85,6 +125,11 @@ class _TrainingScreenState extends State<TrainingScreen> {
             ),
             SizedBox(height: 16),
             TextField(
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value.toLowerCase();
+                });
+              },
               decoration: InputDecoration(
                 hintText: 'Recherche',
                 prefixIcon: Icon(Icons.search),
@@ -104,21 +149,19 @@ class _TrainingScreenState extends State<TrainingScreen> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
+                    return Center(child: Text('Erreur: ${snapshot.error}'));
                   } else {
+                    final filteredFormations = snapshot.data!.where((formation) {
+                      return formation.titre.toLowerCase().contains(searchQuery);
+                    }).toList();
+
                     return ListView.builder(
-                      itemCount: snapshot.data?.length,
+                      itemCount: filteredFormations.length,
                       itemBuilder: (context, index) {
+                        final formation = filteredFormations[index];
                         return CourseCard(
-                          snapshot.data![index],
-                          () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CourseDetailsScreen(formation: snapshot.data![index]),
-                              ),
-                            );
-                          },
+                          formation,
+                          () => _showConfirmationDialog(formation.id), // Call the dialog here
                         );
                       },
                     );
@@ -131,62 +174,109 @@ class _TrainingScreenState extends State<TrainingScreen> {
       ),
     );
   }
+
+  // Méthode pour afficher la boîte de dialogue de confirmation
+  void _showConfirmationDialog(int formationId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmer l\'inscription'),
+          content: Text('Êtes-vous sûr de vouloir vous inscrire à cette formation?'),
+          actions: [
+            TextButton(
+              child: Text('Annuler'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer le dialogue
+              },
+            ),
+            TextButton(
+              child: Text('Confirmer'),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Fermer le dialogue
+                await registerForFormation(formationId); // Appeler l'inscription
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Méthode pour s'inscrire à une formation
+  Future<void> registerForFormation(int formationId) async {
+    bool success = await _inscriptionService.registerForFormation(formationId);
+    if (success) {
+      // Inscription réussie
+      print('Inscription réussie pour la formation ID: $formationId');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Inscription réussie !')),
+      );
+    } else {
+      // Échec de l'inscription
+      print('Échec de l\'inscription pour la formation ID: $formationId');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Échec de l\'inscription.')),
+      );
+    }
+  }
 }
 
 class CategoryButton extends StatelessWidget {
-  final String label;
-  final int courseCount;
+  final String category;
+  final int count;
 
-  CategoryButton(this.label, this.courseCount);
+  CategoryButton(this.category, this.count);
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text('$label\n$courseCount Cours'),
-      backgroundColor: Colors.pink[100],
-      padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    return ElevatedButton(
+      onPressed: () {
+        // Logique pour gérer le clic sur la catégorie
+      },
+      child: Text('$category ($count)'),
     );
   }
 }
 
 class CourseCard extends StatelessWidget {
   final Formation formation;
-  final VoidCallback onFollow; // Callback pour le bouton "Suivre Formation"
+  final VoidCallback onFollow;
 
   CourseCard(this.formation, this.onFollow);
 
   @override
   Widget build(BuildContext context) {
-    // Vérification de l'URL de l'image
     final imageUrl = formation.imageUrl;
-
-    // Afficher l'URL dans la console pour débogage
-    print('Image URL: $imageUrl');
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ListTile(
-       leading: imageUrl.isNotEmpty
-    ? Image.network(
-        imageUrl,
-        width: 50,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          print('Image loading error: $error');
-          return Image.asset(
-            'assets/form.png', // Image par défaut en cas d'erreur
-            width: 50,
-          );
-        },
-      )
-    : Image.asset('assets/form.png', width: 50), // Placeholder si l'URL de l'image est nulle
-
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: imageUrl.isNotEmpty
+              ? Image.network(
+                  imageUrl,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                )
+              : Container(
+                  width: 50,
+                  height: 50,
+                  color: Colors.pinkAccent,
+                  child: Icon(Icons.image, color: Colors.white),
+                ),
+        ),
         title: Text(formation.titre),
-        subtitle: Text(formation.organisateur),
+        subtitle: Text(formation.description),
         trailing: ElevatedButton(
-          onPressed: onFollow,
-          child: Text("Suivre Formation"),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
+          onPressed: onFollow, // Appel de la méthode de confirmation ici
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white, backgroundColor: Colors.pinkAccent, // Change the text color to white
+          ),
+          
+          child: Text("S'inscrire"),
         ),
       ),
     );
