@@ -139,7 +139,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: Text(
                         'Connexion',
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(fontSize: 19,  color: const Color.fromARGB(255, 255, 255, 255)),
+                        
                       ),
                     ),
               SizedBox(height: 10),
@@ -152,17 +153,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   );
                 },
                 child: Text(
-                  "S'inscrire",
+                  "Pas de compte? S'inscrire",
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey,
+                    color: const Color.fromARGB(255, 24, 4, 114),
                     decoration: TextDecoration.underline,
                   ),
                 ),
               ),
               if (message.isNotEmpty) ...[
                 SizedBox(height: 10),
-                Text(message, style: TextStyle(color: Colors.red)),
+                Text(message, style: TextStyle(color: Colors.pinkAccent)),
               ],
             ],
           ),

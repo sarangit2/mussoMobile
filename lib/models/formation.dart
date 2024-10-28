@@ -37,4 +37,20 @@ class Formation {
       imageUrl: json['imageUrl'] ?? '', // Ajouter imagePath dans la conversion JSON
     );
   }
+
+   // Méthode toJson pour sérialiser l'objet
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'titre': titre,
+      'description': description,
+      'dateDebut': dateDebut,
+      'dateFin': dateFin,
+      'organisateur': organisateur,
+      'dateAjout': dateAjout,
+      'categorie': categorie,
+      'videoPath': videoPath,
+      'imageUrl': imageUrl, // Inclure imageUrl dans la conversion JSON
+    };
+  }
 }

@@ -1,12 +1,17 @@
-import 'dart:convert';
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mussomobile/models/formation.dart';
+import 'package:mussomobile/pages/inscribed_trainings_screen.dart';
+import 'package:mussomobile/pages/inscriptions_screen.dart';
+
 import 'package:mussomobile/service/auth_service.dart';
 import 'package:mussomobile/service/inscription_service.dart'; // Import du service d'inscription
 import 'package:shared_preferences/shared_preferences.dart'; // Import pour SharedPreferences
 
 class TrainingScreen extends StatefulWidget {
+  const TrainingScreen({Key? key}) : super(key: key); // Add key parameter
+
   @override
   _TrainingScreenState createState() => _TrainingScreenState();
 }
@@ -19,6 +24,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
   late InscriptionService _inscriptionService; // Déclaration du service d'inscription
   String _userEmail = ''; // Variable pour stocker l'email de l'utilisateur
   int _userId = 0; // Variable pour stocker l'ID de l'utilisateur
+  String _jwtToken = ''; // Variable pour stocker le token JWT
 
   @override
   void initState() {
@@ -33,6 +39,9 @@ class _TrainingScreenState extends State<TrainingScreen> {
     String? token = await _authService.getToken(); // Récupérer le token
     if (token != null) {
       _inscriptionService = InscriptionService('http://localhost:8080', token); // Initialiser le service avec le token
+      setState(() {
+        _jwtToken = token; // Stocker le token JWT
+      });
     } else {
       // Gérer le cas où le token est null (ex: déconnexion)
       print('Aucun token trouvé, utilisateur non connecté.');
@@ -90,6 +99,22 @@ class _TrainingScreenState extends State<TrainingScreen> {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.list, color: Colors.white), // Icon for the button
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InscriptionsScreen(
+                    baseUrl: 'http://localhost:8080', // Remplacez par votre base URL
+                    jwtToken: _jwtToken, // Pass the jwtToken
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -222,6 +247,9 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 }
 
+
+
+
 class CategoryButton extends StatelessWidget {
   final String category;
   final int count;
@@ -255,28 +283,14 @@ class CourseCard extends StatelessWidget {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: imageUrl.isNotEmpty
-              ? Image.network(
-                  imageUrl,
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                )
-              : Container(
-                  width: 50,
-                  height: 50,
-                  color: Colors.pinkAccent,
-                  child: Icon(Icons.image, color: Colors.white),
-                ),
+              ? Image.network(imageUrl, width: 50, height: 50, fit: BoxFit.cover)
+              : Container(color: Colors.grey, width: 50, height: 50), // Placeholder for no image
         ),
         title: Text(formation.titre),
         subtitle: Text(formation.description),
         trailing: ElevatedButton(
-          onPressed: onFollow, // Appel de la méthode de confirmation ici
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white, backgroundColor: Colors.pinkAccent, // Change the text color to white
-          ),
-          
-          child: Text("S'inscrire"),
+          onPressed: onFollow, // Call the follow function
+          child: Text('S\'inscrire'),
         ),
       ),
     );

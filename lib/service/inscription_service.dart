@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:mussomobile/models/formation.dart';
+import 'package:mussomobile/models/inscription.dart';
 
 class InscriptionService {
   final String baseUrl; // URL de base pour les requêtes
@@ -26,19 +28,23 @@ class InscriptionService {
     }
   }
 
-  // Nouvelle méthode pour récupérer la liste des utilisateurs inscrits
-  Future<List<dynamic>> fetchInscrits() async {
+// Récupérer la liste des inscriptions de l'utilisateur authentifié
+  Future<List<Inscription>> fetchUserInscriptions() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/api/inscription/list'),
+      Uri.parse('$baseUrl/api/inscriptions'),
       headers: {
         'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
       },
     );
 
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      List<dynamic> inscriptionsJson = json.decode(response.body);
+      return inscriptionsJson.map((json) => Inscription.fromJson(json)).toList();
     } else {
-      throw Exception('Erreur de récupération des inscrits : ${response.statusCode}');
+      print('Erreur lors de la récupération des inscriptions : ${response.statusCode} - ${response.body}');
+      throw Exception('Erreur lors de la récupération des inscriptions');
     }
   }
+
 }
