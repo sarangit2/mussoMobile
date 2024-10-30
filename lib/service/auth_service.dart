@@ -113,4 +113,6 @@ class AuthService {
     }
     return null; // Retourne null si aucun rôle n'est trouvé
   }
+
+  
 }

@@ -3,6 +3,7 @@ import 'package:mussomobile/models/register_user_dto.dart';
 
 import 'package:mussomobile/pages/home_page.dart';
 import 'package:mussomobile/pages/legal_advice_screen.dart';
+import 'package:mussomobile/pages/mentor_list_page.dart';
 import 'package:mussomobile/pages/sign_up_screen.dart';
 import 'package:mussomobile/service/auth_service.dart';
 
@@ -53,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (userRole.nom == 'MENTOR') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()), // Page pour le MENTOR
+          MaterialPageRoute(builder: (context) => MentorListPage()), // Page pour le MENTOR
         );
       } else if (userRole.nom == 'ADMIN') {
         Navigator.pushReplacement(

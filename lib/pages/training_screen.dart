@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mussomobile/models/formation.dart';
-import 'package:mussomobile/pages/inscribed_trainings_screen.dart';
+
 import 'package:mussomobile/pages/inscriptions_screen.dart';
 
 import 'package:mussomobile/service/auth_service.dart';
