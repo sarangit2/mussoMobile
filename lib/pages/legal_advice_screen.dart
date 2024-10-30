@@ -5,6 +5,7 @@ import 'package:mussomobile/models/articles.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:mussomobile/pages/mentor_list_page.dart';
 import 'package:mussomobile/pages/training_screen.dart';
+import 'package:mussomobile/pages/user_profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import pour SharedPreferences
 
 class LegalAdviceScreen extends StatefulWidget {
@@ -47,7 +48,8 @@ class _LegalAdviceScreenState extends State<LegalAdviceScreen> {
     if (userInfoJson != null) {
       Map<String, dynamic> userInfo = jsonDecode(userInfoJson);
       setState(() {
-        _userEmail = userInfo['email'] ?? ''; // Récupérer l'email des infos utilisateur
+        _userEmail = userInfo['email'] ?? ''; 
+        // Récupérer l'email des infos utilisateur
       });
     }
   }
@@ -176,53 +178,67 @@ class _LegalAdviceScreenState extends State<LegalAdviceScreen> {
           ],
         ],
       ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          canvasColor: Colors.pinkAccent,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedTabIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedTabIndex = index;
-            });
-            if (index == 1) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TrainingScreen()), // Naviguer vers TrainingScreen
-              );
-            } else if (index == 2) { // Redirection vers MentorsScreen
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => MentorListPage()), // Passer le token JWT
-              );
-            } else if (index == 0) {
-              _stopAudio(); // Arrête l'audio lorsque l'utilisateur clique sur "Articles"
-            }
-          },
-          selectedItemColor: Colors.white,
-          unselectedItemColor: const Color.fromARGB(179, 0, 0, 0),
-          type: BottomNavigationBarType.fixed,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.article),
-              label: "Article",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: "Formation",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_search),
-              label: "Spécialiste",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: "Profile",
-            ),
-          ],
-        ),
+     bottomNavigationBar: Theme(
+  data: Theme.of(context).copyWith(
+    canvasColor: Colors.pinkAccent,
+  ),
+  child: BottomNavigationBar(
+    currentIndex: _selectedTabIndex,
+    onTap: (index) {
+      if (index != _selectedTabIndex) { // Évite de naviguer vers la même page
+        setState(() {
+          _selectedTabIndex = index; // Met à jour l'index sélectionné
+        });
+        
+        Widget page;
+        switch (index) {
+          case 0:
+            page = LegalAdviceScreen(); // Page des conseils juridiques
+            break;
+          case 1:
+            page = TrainingScreen(); // Page de formation
+            break;
+          case 2:
+            page = MentorListPage(); // Page des mentors
+            break;
+          case 3:
+            page = UserProfilePage(); // Page de profil utilisateur
+            break;
+          default:
+            page = LegalAdviceScreen(); // Valeur par défaut
+        }
+        
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => page), // Naviguer vers la page appropriée
+        );
+      }
+    },
+    selectedItemColor: Colors.white,
+    unselectedItemColor: const Color.fromARGB(179, 0, 0, 0),
+    type: BottomNavigationBarType.fixed,
+    items: [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.article),
+        label: "Article",
       ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.school),
+        label: "Formation",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person_search),
+        label: "Spécialiste",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: "Profile",
+      ),
+    ],
+  ),
+),
+
+    
     );
   }
 

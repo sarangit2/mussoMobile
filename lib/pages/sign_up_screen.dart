@@ -1,9 +1,6 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:mussomobile/models/register_user_dto.dart';
 import 'package:mussomobile/pages/legal_advice_screen.dart';
-
 import 'package:mussomobile/service/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -54,11 +51,8 @@ class _SignupScreenState extends State<SignupScreen> {
         // Appel du service d'authentification pour l'inscription
         await authService.signup(input, roleId);
 
-        // Rediriger vers l'écran de succès
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => SuccessScreen()),
-        );
+        // Afficher le dialogue de succès
+        _showSuccessDialog();
       } catch (e) {
         setState(() {
           _errorMessage = 'Erreur lors de l\'inscription: $e';
@@ -69,6 +63,32 @@ class _SignupScreenState extends State<SignupScreen> {
         });
       }
     }
+  }
+
+  // Méthode pour afficher le dialogue de succès
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Inscription Réussie !'),
+          content: Text('Bravo, vous êtes maintenant membre de la plateforme.'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer le dialogue
+                // Vous pouvez également rediriger vers une autre page ici
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LegalAdviceScreen()),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -269,61 +289,3 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
-
-
-class SuccessScreen extends StatefulWidget {
-  @override
-  _SuccessScreenState createState() => _SuccessScreenState();
-}
-
-class _SuccessScreenState extends State<SuccessScreen> {
-  @override
-  void initState() {
-    super.initState();
-
-    // Ajouter un délai de 3 secondes avant la redirection
-    Future.delayed(Duration(seconds: 3), () {
-      // Rediriger vers la page de connexion avec MaterialPageRoute
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LegalAdviceScreen()), // Remplacez LoginScreen() par votre écran de connexion
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(48, 87, 85, 85),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 100),
-            SizedBox(height: 20),
-            Text(
-              'Inscription Réussie !',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Bienvenue, vous êtes maintenant inscrit(e).',
-              style: TextStyle(
-                fontSize: 16,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          
-         
-          ],
-        ),
-      ),
-    );
-  }
-}
-

@@ -1,11 +1,7 @@
-import 'dart:io';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mussomobile/models/formation.dart';
 import 'package:video_player/video_player.dart';
-import 'package:path_provider/path_provider.dart'; // Pour obtenir le répertoire de stockage
-import 'package:open_file/open_file.dart'; // Import pour ouvrir le fichier
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 
 class CourseDetailsScreen extends StatefulWidget {
   final Formation formation;
@@ -22,6 +18,10 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Vérification du lien PDF
+    print(widget.formation.pdfPath);
+    
     if (widget.formation.videoPath.isNotEmpty) {
       _videoController = VideoPlayerController.network(widget.formation.videoPath)
         ..initialize().then((_) {
@@ -36,6 +36,17 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
       _videoController.dispose();
     }
     super.dispose();
+  }
+
+  void _openPdfViewer() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PDFView(
+          filePath: widget.formation.pdfPath,
+        ),
+      ),
+    );
   }
 
   @override
@@ -180,26 +191,35 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                           SizedBox(height: 24.0),
                         ],
                       ),
-
-                    // PDF
-                    if (widget.formation.imageUrl.isNotEmpty)
+                    // PDF Button
+                    if (widget.formation.pdfPath.isNotEmpty)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ressources PDF',
+                            'Document PDF',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18.0,
                               color: Colors.pinkAccent,
                             ),
                           ),
-                          SizedBox(height: 16.0),
-                          pdfItem(
-                            context,
-                            widget.formation.imageUrl,
-                            'PDF Formation',
-                            '500MB',
+                          SizedBox(height: 4.0),
+                          Text(
+                            'Cliquez ci-dessous pour lire le document PDF.',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 15.0,
+                            ),
+                          ),
+                          SizedBox(height: 8.0),
+                          ElevatedButton.icon(
+                            onPressed: _openPdfViewer,
+                            icon: Icon(Icons.picture_as_pdf),
+                            label: Text('Ouvrir le PDF'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.pinkAccent,
+                            ),
                           ),
                         ],
                       ),
@@ -211,87 +231,5 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
         ],
       ),
     );
-  }
-
-  Widget pdfItem(BuildContext context, String url, String title, String size) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 10.0),
-        Container(
-          padding: EdgeInsets.all(16.0),
-          margin: EdgeInsets.only(bottom: 16.0),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 4.0,
-                offset: Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.picture_as_pdf,
-                color: Colors.red,
-                size: 36.0,
-              ),
-              SizedBox(width: 16.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16.0,
-                      ),
-                    ),
-                    SizedBox(height: 4.0),
-                    Text(
-                      '$size',
-                      style: TextStyle(
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.download,
-                  color: Colors.pinkAccent,
-                ),
-                onPressed: () async {
-                  String? filePath = await downloadPdf(url);
-                  if (filePath != null) {
-                    OpenFile.open(filePath); // Ouvrir le fichier PDF
-                  }
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<String?> downloadPdf(String url) async {
-    try {
-      // Obtenir le répertoire temporaire
-      Directory tempDir = await getTemporaryDirectory();
-      String filePath = '${tempDir.path}/formation.pdf';
-
-      // Télécharger le PDF
-      await Dio().download(url, filePath);
-      return filePath; // Retourner le chemin du fichier
-    } catch (e) {
-      print('Erreur de téléchargement: $e');
-      return null; // Retourner null en cas d'erreur
-    }
   }
 }

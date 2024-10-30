@@ -1,16 +1,18 @@
 import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:mussomobile/models/articles.dart';
 import 'package:mussomobile/models/formation.dart';
-
 import 'package:mussomobile/pages/inscriptions_screen.dart';
-
+import 'package:mussomobile/pages/legal_advice_screen.dart';
+import 'package:mussomobile/pages/mentor_list_page.dart';
+import 'package:mussomobile/pages/user_profile_page.dart';
 import 'package:mussomobile/service/auth_service.dart';
-import 'package:mussomobile/service/inscription_service.dart'; // Import du service d'inscription
-import 'package:shared_preferences/shared_preferences.dart'; // Import pour SharedPreferences
+import 'package:mussomobile/service/inscription_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TrainingScreen extends StatefulWidget {
-  const TrainingScreen({Key? key}) : super(key: key); // Add key parameter
+  const TrainingScreen({Key? key}) : super(key: key);
 
   @override
   _TrainingScreenState createState() => _TrainingScreenState();
@@ -21,31 +23,30 @@ class _TrainingScreenState extends State<TrainingScreen> {
   late Future<Map<String, int>> categoriesWithCount;
   String searchQuery = "";
   final AuthService _authService = AuthService();
-  late InscriptionService _inscriptionService; // Déclaration du service d'inscription
-  String _userEmail = ''; // Variable pour stocker l'email de l'utilisateur
-  int _userId = 0; // Variable pour stocker l'ID de l'utilisateur
-  String _jwtToken = ''; // Variable pour stocker le token JWT
+  late InscriptionService _inscriptionService;
+  String _userEmail = '';
+  int _userId = 0;
+  String _jwtToken = '';
+  int _selectedTabIndex = 1; // Initialiser l'index de l'onglet sélectionné
 
   @override
   void initState() {
     super.initState();
     formations = fetchFormations();
     categoriesWithCount = fetchCategoriesWithCount();
-    _loadUserInfo(); // Charger les informations de l'utilisateur lors de l'initialisation
-    _initializeInscriptionService(); // Initialiser le service d'inscription avec le token
+    _loadUserInfo();
+    _initializeInscriptionService();
   }
 
   Future<void> _initializeInscriptionService() async {
-    String? token = await _authService.getToken(); // Récupérer le token
+    String? token = await _authService.getToken();
     if (token != null) {
-      _inscriptionService = InscriptionService('http://localhost:8080', token); // Initialiser le service avec le token
+      _inscriptionService = InscriptionService('http://localhost:8080', token);
       setState(() {
-        _jwtToken = token; // Stocker le token JWT
+        _jwtToken = token;
       });
     } else {
-      // Gérer le cas où le token est null (ex: déconnexion)
       print('Aucun token trouvé, utilisateur non connecté.');
-      // Vous pouvez rediriger vers l'écran de connexion ici si nécessaire
     }
   }
 
@@ -55,16 +56,14 @@ class _TrainingScreenState extends State<TrainingScreen> {
     if (userInfoJson != null) {
       Map<String, dynamic> userInfo = jsonDecode(userInfoJson);
       setState(() {
-        _userEmail = userInfo['email'] ?? ''; // Récupérer l'email des infos utilisateur
-        _userId = userInfo['id'] ?? 0; // Récupérer l'ID des infos utilisateur
+        _userEmail = userInfo['email'] ?? '';
+        _userId = userInfo['id'] ?? 0;
       });
     }
   }
 
-  // Méthode pour récupérer la liste des formations
   Future<List<Formation>> fetchFormations() async {
     final response = await http.get(Uri.parse('http://localhost:8080/api/formations/liste'));
-
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((formation) => Formation.fromJson(formation)).toList();
@@ -73,16 +72,13 @@ class _TrainingScreenState extends State<TrainingScreen> {
     }
   }
 
-  // Méthode pour récupérer les catégories avec le nombre de formations
   Future<Map<String, int>> fetchCategoriesWithCount() async {
     final formations = await fetchFormations();
     Map<String, int> categoryCounts = {};
-
     for (var formation in formations) {
       String category = formation.categorie;
       categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
     }
-
     return categoryCounts;
   }
 
@@ -101,14 +97,14 @@ class _TrainingScreenState extends State<TrainingScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.list, color: Colors.white), // Icon for the button
+            icon: Icon(Icons.list, color: Colors.white),
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => InscriptionsScreen(
-                    baseUrl: 'http://localhost:8080', // Remplacez par votre base URL
-                    jwtToken: _jwtToken, // Pass the jwtToken
+                    baseUrl: 'http://localhost:8080',
+                    jwtToken: _jwtToken,
                   ),
                 ),
               );
@@ -121,11 +117,6 @@ class _TrainingScreenState extends State<TrainingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Afficher l'email et l'ID de l'utilisateur
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Text("Email : $_userEmail\nID Utilisateur : $_userId", style: TextStyle(fontSize: 18)),
-            ),
             FutureBuilder<Map<String, int>>(
               future: categoriesWithCount,
               builder: (context, snapshot) {
@@ -186,7 +177,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
                         final formation = filteredFormations[index];
                         return CourseCard(
                           formation,
-                          () => _showConfirmationDialog(formation.id), // Call the dialog here
+                          () => _showConfirmationDialog(formation.id),
                         );
                       },
                     );
@@ -197,6 +188,69 @@ class _TrainingScreenState extends State<TrainingScreen> {
           ],
         ),
       ),
+     bottomNavigationBar: Theme(
+  data: Theme.of(context).copyWith(
+    canvasColor: Colors.pinkAccent,
+  ),
+  child: BottomNavigationBar(
+    currentIndex: _selectedTabIndex,
+    onTap: (index) {
+      if (index != _selectedTabIndex) { // Vérifier si l'index sélectionné est différent de l'index actuel
+        setState(() {
+          _selectedTabIndex = index;
+        });
+
+        if (index == 0) {
+          // Navigation vers la page des Articles
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LegalAdviceScreen()),
+          );
+        } else if (index == 1) {
+          // Navigation vers la page de Formation
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => TrainingScreen()),
+          );
+        } else if (index == 2) {
+          // Navigation vers la page des Mentors
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MentorListPage()),
+          );
+        } else if (index == 3) {
+          // Navigation vers la page de Profil
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => UserProfilePage()),
+          );
+        }
+      }
+    },
+    selectedItemColor: Colors.white,
+    unselectedItemColor: const Color.fromARGB(179, 0, 0, 0),
+    type: BottomNavigationBarType.fixed,
+    items: [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.article),
+        label: "Article",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.school),
+        label: "Formation",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person_search),
+        label: "Spécialiste",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: "Profile",
+      ),
+    ],
+  ),
+),
+
     );
   }
 
@@ -249,7 +303,6 @@ class _TrainingScreenState extends State<TrainingScreen> {
 
 
 
-
 class CategoryButton extends StatelessWidget {
   final String category;
   final int count;
@@ -263,6 +316,9 @@ class CategoryButton extends StatelessWidget {
         // Logique pour gérer le clic sur la catégorie
       },
       child: Text('$category ($count)'),
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white, backgroundColor: Colors.pinkAccent, // Couleur du texte
+      ),
     );
   }
 }
@@ -284,13 +340,16 @@ class CourseCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           child: imageUrl.isNotEmpty
               ? Image.network(imageUrl, width: 50, height: 50, fit: BoxFit.cover)
-              : Container(color: Colors.grey, width: 50, height: 50), // Placeholder for no image
+              : Container(color: Colors.pinkAccent, width: 50, height: 50), // Placeholder pour pas d'image
         ),
         title: Text(formation.titre),
         subtitle: Text(formation.description),
         trailing: ElevatedButton(
-          onPressed: onFollow, // Call the follow function
+          onPressed: onFollow, // Appeler la fonction de suivi
           child: Text('S\'inscrire'),
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white, backgroundColor: Colors.pinkAccent, // Couleur du texte
+          ),
         ),
       ),
     );

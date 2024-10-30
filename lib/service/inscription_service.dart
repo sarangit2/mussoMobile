@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:mussomobile/models/formation.dart';
+
 import 'package:mussomobile/models/inscription.dart';
 
 class InscriptionService {

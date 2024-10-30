@@ -1,10 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; 
 import 'package:mussomobile/models/mentor.dart';
+import 'package:mussomobile/pages/legal_advice_screen.dart';
+import 'package:mussomobile/pages/training_screen.dart';
+
+import 'package:mussomobile/pages/user_profile_page.dart';
 import 'package:mussomobile/service/mentor_service.dart';
 import 'package:mussomobile/service/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:mussomobile/models/message.dart';
+import 'package:mussomobile/pages/received_messages_page.dart'; // Importez votre page de messages reçus ici
 
 class MentorListPage extends StatefulWidget {
   @override
@@ -17,6 +22,7 @@ class _MentorListPageState extends State<MentorListPage> {
   late Future<List<Mentor>> mentorsFuture;
   String searchQuery = '';
   ScrollController _scrollController = ScrollController();
+  int _selectedTabIndex = 2; // Index par défaut pour l'onglet Spécialiste
 
   @override
   void initState() {
@@ -119,6 +125,10 @@ class _MentorListPageState extends State<MentorListPage> {
     }
   }
 
+  void _stopAudio() {
+    // Arrête l'audio si nécessaire
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,6 +141,17 @@ class _MentorListPageState extends State<MentorListPage> {
           'Nos spécialistes',
           style: TextStyle(color: Color(0xFFFF4D6D)),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.message, color: Color(0xFFFF4D6D)), // Icône pour voir les messages reçus
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ReceivedMessagesPage()), // Remplacez par votre page de messages reçus
+              );
+            },
+          ),
+        ],
         backgroundColor: Colors.white,
         elevation: 0,
       ),
@@ -192,7 +213,7 @@ class _MentorListPageState extends State<MentorListPage> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 image: DecorationImage(
-                                  image: AssetImage('assets/LogoMusso.png'),
+                                  image: AssetImage('assets/special.png'),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -242,32 +263,66 @@ class _MentorListPageState extends State<MentorListPage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        selectedItemColor: Color(0xFFFF4D6D),
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.article),
-            label: 'Article',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school),
-            label: 'Formation',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_search),
-            label: 'Spécialiste',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+     bottomNavigationBar: Theme(
+  data: Theme.of(context).copyWith(
+    canvasColor: Colors.pinkAccent,
+  ),
+  child: BottomNavigationBar(
+    currentIndex: _selectedTabIndex,
+    onTap: (index) {
+      if (index != _selectedTabIndex) { // Vérifier si l'index sélectionné est différent de l'index actuel
+        setState(() {
+          _selectedTabIndex = index; // Mettre à jour l'index sélectionné
+        });
+
+        if (index == 0) {
+          // Navigation vers la page des Articles
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LegalAdviceScreen()),
+          );
+        } else if (index == 1) {
+          // Navigation vers la page de Formation
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => TrainingScreen()),
+          );
+        } else if (index == 2) {
+          // Déjà sur la page des Mentors, aucune action nécessaire
+          // Vous pouvez choisir de ne rien faire ici
+        } else if (index == 3) {
+          // Navigation vers la page de Profil
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => UserProfilePage()),
+          );
+        }
+      }
+    },
+    selectedItemColor: Colors.white,
+    unselectedItemColor: const Color.fromARGB(179, 0, 0, 0),
+    type: BottomNavigationBarType.fixed,
+    items: [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.article),
+        label: "Article",
       ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.school),
+        label: "Formation",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person_search),
+        label: "Spécialiste",
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person),
+        label: "Profile",
+      ),
+    ],
+  ),
+),
+
     );
   }
 }

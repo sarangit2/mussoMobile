@@ -114,5 +114,50 @@ class AuthService {
     return null; // Retourne null si aucun rôle n'est trouvé
   }
 
-  
+
+
+// AuthService.dart
+
+Future<void> updateSuperAdmin(int id, RegisterUserDto input) async {
+  final response = await http.put(
+    Uri.parse('$baseUrl/superadmin/modifier/$id'), // Utilisation de l'ID
+    headers: <String, String>{
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode(input.toJson()), // Transformation en JSON
+  );
+
+  if (response.statusCode != 201) {
+    print('Échec de la mise à jour: ${response.body}');
+    throw Exception('Échec de la mise à jour: ${response.body}');
+  }
+  print('Mise à jour réussie: ${response.body}');
+}
+
+
+// AuthService.dart
+// Méthode pour récupérer les informations de l'utilisateur
+Future<Map<String, dynamic>> getUserInfo() async {
+  final token = await getToken(); // Obtenir le token sauvegardé
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/superadmin/me'), // Mettre à jour avec votre endpoint pour les infos utilisateur
+    headers: {
+      'Authorization': 'Bearer $token', // Inclure le token dans la requête
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic>? data = json.decode(response.body);
+    if (data == null) {
+      throw Exception('Les données utilisateur sont nulles');
+    }
+    return data; // Retourner les infos utilisateur en tant que Map
+  } else {
+    print('Échec de la récupération des informations utilisateur: ${response.body}');
+    throw Exception('Échec de la récupération des informations utilisateur: ${response.body}');
+  }
+}
+
 }

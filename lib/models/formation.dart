@@ -8,7 +8,8 @@ class Formation {
   final String dateAjout;
   final String categorie;
   final String videoPath;
-  final String imageUrl; // Ajouter un champ pour l'image
+  final String imageUrl;
+  final String pdfPath; // Nouveau champ pour le PDF
 
   Formation({
     required this.id,
@@ -20,7 +21,8 @@ class Formation {
     required this.dateAjout,
     required this.categorie,
     required this.videoPath,
-    required this.imageUrl, // Inclure imagePath dans le constructeur
+    required this.imageUrl,
+    required this.pdfPath, // Inclure pdfPath dans le constructeur
   });
 
   factory Formation.fromJson(Map<String, dynamic> json) {
@@ -34,11 +36,11 @@ class Formation {
       dateAjout: json['dateAjout'],
       categorie: json['categorie'] ?? '',
       videoPath: json['videoPath'] ?? '',
-      imageUrl: json['imageUrl'] ?? '', // Ajouter imagePath dans la conversion JSON
+      imageUrl: json['imageUrl'] ?? '',
+      pdfPath: json['pdfPath'] ?? '', // Ajouter pdfPath dans la conversion JSON
     );
   }
 
-   // Méthode toJson pour sérialiser l'objet
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -50,7 +52,8 @@ class Formation {
       'dateAjout': dateAjout,
       'categorie': categorie,
       'videoPath': videoPath,
-      'imageUrl': imageUrl, // Inclure imageUrl dans la conversion JSON
+      'imageUrl': imageUrl,
+      'pdfPath': pdfPath, // Inclure pdfPath dans la conversion JSON
     };
   }
 }

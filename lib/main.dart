@@ -50,7 +50,10 @@ class _SplashScreenState extends State<SplashScreen> {
         height: 150, // hauteur de l'image
       ),
       SizedBox(height: 20),
-      CircularProgressIndicator(), // Indicateur de chargement
+     SizedBox(height: 20),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.pinkAccent), // Changer la couleur ici
+            ), // Indicateur de chargement
     ],
   ),
 ),
