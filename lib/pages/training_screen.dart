@@ -28,7 +28,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
   int _userId = 0;
   String _jwtToken = '';
   int _selectedTabIndex = 1; // Initialiser l'index de l'onglet sélectionné
-
+ bool _isButtonDisabled = false; // Nouveau booléen pour désactiver le bouton
   @override
   void initState() {
     super.initState();

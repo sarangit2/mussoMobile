@@ -82,8 +82,8 @@ class _ChatPageState extends State<ChatPage> {
 
       if (response.statusCode == 200) {
         messageController.clear();
-        fetchMessages(); // Pour rafraîchir la liste des messages reçus
-        fetchSentMessages(); // Pour rafraîchir la liste des messages envoyés
+        fetchMessages();
+        fetchSentMessages();
       } else {
         throw Exception('Erreur lors de l\'envoi du message');
       }
@@ -108,7 +108,7 @@ class _ChatPageState extends State<ChatPage> {
                 final message = index < receivedMessages.length 
                     ? receivedMessages[index] 
                     : sentMessages[index - receivedMessages.length];
-
+                
                 bool isSentByUser = message.utilisateur.id == 1;
 
                 return Align(
@@ -117,14 +117,14 @@ class _ChatPageState extends State<ChatPage> {
                     margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isSentByUser ? Colors.green[200] : Colors.blue[200],
+                      color: isSentByUser ? Colors.green[200] : const Color.fromARGB(255, 212, 209, 0),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.grey.withOpacity(0.3),
                           spreadRadius: 1,
                           blurRadius: 5,
-                          offset: Offset(0, 3),
+                          offset: Offset(0, 3), // changes position of shadow
                         ),
                       ],
                     ),

@@ -42,6 +42,10 @@ class _LegalAdviceScreenState extends State<LegalAdviceScreen> {
         _position = position;
       });
     });
+
+    
+
+    
   }
 
   Future<void> _loadUserEmail() async {

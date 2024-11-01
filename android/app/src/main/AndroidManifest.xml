@@ -6,10 +6,13 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    
     <application
         android:label="mussomobile"
         android:name="${applicationName}"
-        android:icon="@mipmap/logo_musso">
+        android:icon="@mipmap/logo_musso"
+        android:networkSecurityConfig="@xml/network_security_config"> <!-- Ajoutez cette ligne -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
