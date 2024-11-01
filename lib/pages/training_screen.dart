@@ -89,12 +89,7 @@ class _TrainingScreenState extends State<TrainingScreen> {
         backgroundColor: Colors.pinkAccent,
         title: Text('Formations', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
+       
         actions: [
           IconButton(
             icon: Icon(Icons.list, color: Colors.white),

@@ -21,10 +21,11 @@ android {
 
      defaultConfig {
         applicationId = "com.example.mussomobile"
-        minSdkVersion 21  // Assurez-vous que minSdkVersion est suffisamment élevé pour les plugins modernes
-        targetSdkVersion 33  // Ajustez selon la version la plus récente que vous ciblez
-        versionCode 1  // Ajustez en fonction de la version actuelle de votre application
-        versionName "1.0"  // Ajustez en fonction de la version actuelle de votre application
+        minSdk = flutter.minSdkVersion
+        minSdkVersion 23  // Assurez-vous que minSdkVersion est suffisamment élevé pour les plugins modernes
+        targetSdk = flutter.targetSdkVersion  // Ajustez selon la version la plus récente que vous ciblez
+        versionCode = flutter.versionCode // Ajustez en fonction de la version actuelle de votre application
+        versionName = flutter.versionName  // Ajustez en fonction de la version actuelle de votre application
 
         // Optionnel, si nécessaire pour les grands projets avec beaucoup de dépendances :
         // multiDexEnabled true

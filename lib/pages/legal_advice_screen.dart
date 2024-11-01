@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mussomobile/models/articles.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:mussomobile/pages/article_detail_page.dart';
 import 'package:mussomobile/pages/mentor_list_page.dart';
+import 'package:mussomobile/pages/offre_emploi_page.dart';
 import 'package:mussomobile/pages/training_screen.dart';
 import 'package:mussomobile/pages/user_profile_page.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import pour SharedPreferences
@@ -61,17 +63,30 @@ class _LegalAdviceScreenState extends State<LegalAdviceScreen> {
     });
   }
 
-  Future<void> _fetchArticles() async {
+Future<void> _fetchArticles() async {
+  print('Début de _fetchArticles'); // Confirme que la fonction est appelée
+  
+  try {
     final response = await http.get(Uri.parse('http://localhost:8080/api/articles/liste'));
+    print('Réponse reçue avec code: ${response.statusCode}'); // Affiche le code de statut pour voir s'il est 200
+
     if (response.statusCode == 200) {
+      print('Réponse réussie, décodage du JSON'); // Indique que le code de statut est correct
       List<dynamic> jsonList = jsonDecode(response.body);
+      print('JSON décodé avec succès, nombre d\'articles: ${jsonList.length}'); // Confirme que le JSON a été décodé
+      
       setState(() {
         _articles = jsonList.map((json) => Article.fromJson(json)).toList();
+        print('Articles mis à jour dans l\'état'); // Indique que les articles sont bien ajoutés à l'état
       });
     } else {
+      print('Échec du chargement des articles avec le code de statut: ${response.statusCode}');
       throw Exception('Échec du chargement des articles');
     }
+  } catch (e) {
+    print('Erreur lors de la récupération des articles: $e'); // Affiche toute exception attrapée
   }
+}
 
   void _playAudio(String url) async {
     await _audioPlayer.play(UrlSource(url)); // Joue l'audio à partir de l'URL
@@ -118,9 +133,28 @@ class _LegalAdviceScreenState extends State<LegalAdviceScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text("Email : $_userEmail", style: TextStyle(fontSize: 18)),
-          ),
+  padding: const EdgeInsets.all(16.0), // Ajoute de l'espace autour du bouton
+  child: ElevatedButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => OffreEmploiPage()), // Naviguer vers OffreScreen
+      );
+    },
+    style: ElevatedButton.styleFrom(
+      foregroundColor: Colors.white, backgroundColor: Colors.pinkAccent, // Couleur du texte
+      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30), // Ajout de padding
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(30), // Coins arrondis
+      ),
+    ),
+    child: Text(
+      'Voir les offres',
+      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Style du texte
+    ),
+  ),
+),
+
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
@@ -242,48 +276,54 @@ class _LegalAdviceScreenState extends State<LegalAdviceScreen> {
     );
   }
 
-  Widget _getSelectedContent() {
-    if (_selectedTabIndex == 0) {
-      return ListView.builder(
-        padding: const EdgeInsets.all(8.0),
-        itemCount: _articles.length,
-        itemBuilder: (context, index) {
-          final article = _articles[index];
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            elevation: 2,
-            child: ListTile(
-              title: Text(article.titre),
-              subtitle: Text(article.description),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.visibility, color: Colors.pinkAccent),
-                    onPressed: () {
-                      _stopAudio(); // Arrête l'audio lorsque l'utilisateur clique sur un article
-                      // Logique pour afficher les détails de l'article
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.record_voice_over, color: Colors.pinkAccent), // Icône pour jouer l'audio
-                    onPressed: () {
-                      _playAudio(article.audioUrl); // Appel à la méthode pour jouer l'audio
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    } else {
-      // Gérer les autres sections
-      return Center(child: Text('Autres contenus à venir...'));
-    }
+Widget _getSelectedContent() {
+  List<Article> filteredArticles;
+
+  // Check if the selected tab is "Droits" or "Articles" and filter accordingly
+  if (_selectedTabIndex == 0) {
+    filteredArticles = _articles.where((article) => article.type == ArticleType.Droit).toList();
+  } else {
+    filteredArticles = _articles.where((article) => article.type == ArticleType.Article).toList();
   }
+
+  return ListView.builder(
+    padding: const EdgeInsets.all(8.0),
+    itemCount: filteredArticles.length,
+    itemBuilder: (context, index) {
+      final article = filteredArticles[index];
+      return Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        elevation: 2,
+        child: ListTile(
+          title: Text(article.titre),
+          subtitle: Text(article.description),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(Icons.visibility, color: Colors.pinkAccent),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ArticleDetailPage(article: article)),
+                  ); // Naviguer vers la page des détails
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.record_voice_over, color: Colors.pinkAccent),
+                onPressed: () {
+                  _playAudio(article.audioUrl); // Play audio for article
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildTabButton(String label, int index) {
     return Expanded(

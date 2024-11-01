@@ -58,20 +58,27 @@ class _InscriptionsScreenState extends State<InscriptionsScreen> {
                     elevation: 4,
                     child: ListTile(
                       leading: Icon(Icons.school, size: 40, color: Colors.pinkAccent), // Icône de formation
-                      title: Text(
-                        inscription.formation.titre,
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ), // Afficher le titre de la formation
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      title: Column(crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            inscription.formation.titre,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           Text('Statut: ${inscription.status}'),
                           Text('Date: ${inscription.dateInscription.toLocal()}'),
                         ],
-                      ), // Afficher le statut et la date
-                      isThreeLine: true,
-                      trailing: inscription.status == 'APPROUVER'
-                          ? ElevatedButton(
+                      ), // Afficher le titre de la formation
+                      // subtitle: Column(
+                      //   crossAxisAlignment: CrossAxisAlignment.start,
+                      //   children: [
+                      //     Text('Statut: ${inscription.status}'),
+                      //     Text('Date: ${inscription.dateInscription.toLocal()}'),
+                      //   ],
+                      // ), // Afficher le statut et la date
+                     
+                      // isThreeLine: true,
+                      subtitle: inscription.status == 'APPROUVER'
+                          ? ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.pinkAccent),
                               onPressed: () {
                                 // Logique pour suivre la formation
                                 Navigator.push(
@@ -81,7 +88,7 @@ class _InscriptionsScreenState extends State<InscriptionsScreen> {
                                   ),
                                 );
                               },
-                              child: Text('Suivre la formation'),
+                              child: const Text('Suivre la formation',style: TextStyle(color: Colors.white),),
                             )
                           : null, // Pas de bouton si le statut n'est pas APPROUVER
                     ),

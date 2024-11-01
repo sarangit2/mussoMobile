@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mussomobile/pages/home_page.dart';
 import 'package:mussomobile/pages/login_screen.dart';
 
 
@@ -32,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Délai de 3 secondes avant de rediriger vers la page de connexion
     Future.delayed(Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => HomePage()),
       );
     });
   }
@@ -45,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
     mainAxisAlignment: MainAxisAlignment.center,
     children: [
       Image.asset(
-        'assets/LogoMusso.png', // Remplace par le chemin de ton image
+        'assets/Logo_musso.png', // Remplace par le chemin de ton image
         width: 150,  // largeur de l'image
         height: 150, // hauteur de l'image
       ),

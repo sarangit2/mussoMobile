@@ -1,71 +1,67 @@
-// Modèle pour représenter un Message
+// Model to represent a Message
 class Message {
-  final int? id; // Peut être nul pour un nouveau message
-  final String? email; // Peut être nul
-  final String content; // Doit être non nul
-  final Utilisateur utilisateur; // Représente l'expéditeur du message
+  final int? id; // Can be null for a new message
+  final String? email; // Can be null
+  final String content; // Must not be null
+  final Utilisateur utilisateur; // Represents the sender of the message
+  bool accepted; // Indicates if the discussion is accepted
 
-  // Constructeur
+  // Constructor
   Message({
     this.id,
     this.email,
     required this.content,
     required this.utilisateur,
+    this.accepted = false, // Default value is false
   });
 
-  // Créer un Message à partir d'un Map
+  // Create a Message from a Map
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       id: json['id'] as int?,
       email: json['email'] as String?,
       content: json['content'] as String,
       utilisateur: Utilisateur.fromJson(json['utilisateur'] as Map<String, dynamic>),
+      accepted: json['accepted'] as bool? ?? false, // Default to false if null
     );
   }
 
-  // Convertir un Message en Map
+  // Convert a Message to a Map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'email': email,
       'content': content,
       'utilisateur': utilisateur.toJson(),
+      'accepted': accepted, // Include accepted status
     };
   }
 }
 
-// Classe Utilisateur, représentant l'entité utilisateur en Flutter
+// User class representing the user entity in Flutter
 class Utilisateur {
   final int id;
-  final String name; // Nom de l'utilisateur
-  final String? role; // Peut être nul, représente le rôle de l'utilisateur si nécessaire
-  final String? phoneNumber; // Peut être nul, numéro de téléphone de l'utilisateur
+  final String nom; // User's name
 
-  // Constructeur
+  // Constructor
   Utilisateur({
     required this.id,
-    required this.name,
-    this.role,
-    this.phoneNumber,
+    required this.nom,
   });
 
-  // Créer un Utilisateur à partir d'un Map
+  // Create a User from a Map
   factory Utilisateur.fromJson(Map<String, dynamic> json) {
     return Utilisateur(
       id: json['id'] as int,
-      name: json['name'] as String,
-      role: json['role'] as String?,
-      phoneNumber: json['phoneNumber'] as String?,
+      nom: json['nom'] as String,
     );
   }
 
-  // Convertir un Utilisateur en Map
+  // Convert a User to a Map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
-      'role': role,
-      'phoneNumber': phoneNumber,
+      'nom': nom,
     };
   }
 }

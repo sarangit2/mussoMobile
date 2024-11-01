@@ -12,11 +12,13 @@ import 'package:mussomobile/models/message.dart';
 import 'package:mussomobile/pages/received_messages_page.dart'; // Importez votre page de messages reçus ici
 
 class MentorListPage extends StatefulWidget {
+  
   @override
   _MentorListPageState createState() => _MentorListPageState();
 }
 
 class _MentorListPageState extends State<MentorListPage> {
+  
   final MentorService mentorService = MentorService();
   final AuthService authService = AuthService();
   late Future<List<Mentor>> mentorsFuture;
@@ -89,7 +91,8 @@ class _MentorListPageState extends State<MentorListPage> {
       final message = Message(
         content: messageContent,
         email: mentorEmail,
-        utilisateur: Utilisateur(id: 1, name: 'Votre Nom'), // Remplacez par l'utilisateur actuel
+        utilisateur: Utilisateur(id: 1, nom: 'Votre Nom'), // Remplacez par l'utilisateur actuel
+         
       );
 
       final response = await http.post(
@@ -133,28 +136,27 @@ class _MentorListPageState extends State<MentorListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Color(0xFFFF4D6D)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Nos spécialistes',
-          style: TextStyle(color: Color(0xFFFF4D6D)),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.message, color: Color(0xFFFF4D6D)), // Icône pour voir les messages reçus
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ReceivedMessagesPage()), // Remplacez par votre page de messages reçus
-              );
-            },
-          ),
-        ],
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
+  
+  title: Text(
+    'Nos spécialistes',
+    style: TextStyle(color: Colors.white),
+  ),
+  centerTitle: true, // Centre le titre
+  actions: [
+    IconButton(
+      icon: Icon(Icons.message, color: Colors.white), // Icône pour voir les messages reçus
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ReceivedMessagesPage()), // Remplacez par votre page de messages reçus
+        );
+      },
+    ),
+  ],
+  backgroundColor: Colors.pinkAccent,
+  elevation: 0,
+),
+
       body: SingleChildScrollView(
         controller: _scrollController,
         child: Column(

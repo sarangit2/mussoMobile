@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:mussomobile/models/register_user_dto.dart';
 
-import 'package:mussomobile/pages/home_page.dart';
 import 'package:mussomobile/pages/legal_advice_screen.dart';
 import 'package:mussomobile/pages/mentor_list_page.dart';
 import 'package:mussomobile/pages/sign_up_screen.dart';
@@ -60,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (userRole.nom == 'ADMIN') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomePage()), // Page pour l'ADMIN
+          MaterialPageRoute(builder: (context) => LoginScreen()), // Page pour l'ADMIN
         );
       } else {
         Navigator.pushReplacement(
@@ -87,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // Logo en haut de la page
               Image.asset(
-                'assets/LogoMusso.png', // Assurez-vous que le chemin du logo est correct
+                'assets/Logo_musso.png', // Assurez-vous que le chemin du logo est correct
                 height: 150,
               ),
               SizedBox(height: 20),
