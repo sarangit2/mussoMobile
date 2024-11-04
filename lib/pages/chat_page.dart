@@ -110,14 +110,14 @@ class _ChatPageState extends State<ChatPage> {
                     : sentMessages[index - receivedMessages.length];
                 
                 bool isSentByUser = message.utilisateur.id == 1;
-
-                return Align(
-                  alignment: isSentByUser ? Alignment.centerRight : Alignment.centerLeft,
+                if(message.utilisateur.id == widget.mentorId){
+                  return Align(
+                  alignment: Alignment.centerLeft,
                   child: Container(
                     margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     padding: EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isSentByUser ? Colors.green[200] : const Color.fromARGB(255, 212, 209, 0),
+                      color: isSentByUser ? Colors.green[200] : const Color.fromARGB(255, 206, 206, 204),
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
@@ -144,6 +144,42 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                 );
+                } else{
+                  return Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isSentByUser ? Colors.green[200] :  Colors.pinkAccent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          spreadRadius: 1,
+                          blurRadius: 5,
+                          offset: Offset(0, 3), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: isSentByUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          message.content,
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          message.utilisateur.nom,
+                          style: TextStyle(color: Colors.black54, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+                }
+                
               },
             ),
           ),

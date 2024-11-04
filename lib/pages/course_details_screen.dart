@@ -14,37 +14,81 @@ class CourseDetailsScreen extends StatefulWidget {
 
 class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
   late VideoPlayerController _videoController;
+  bool _isPdfOpen = false;
 
   @override
   void initState() {
     super.initState();
-    
-    // Vérification du lien PDF
-    print(widget.formation.pdfPath);
-    
     if (widget.formation.videoPath.isNotEmpty) {
-      _videoController = VideoPlayerController.network(widget.formation.videoPath)
-        ..initialize().then((_) {
-          setState(() {}); // Mise à jour de l'état lorsque la vidéo est prête
-        });
+      _initializeVideo();
     }
+  }
+
+  void _initializeVideo() {
+    _videoController = VideoPlayerController.network(widget.formation.videoPath)
+      ..setLooping(true)
+      ..initialize().then((_) {
+        setState(() {});
+      }).catchError((error) {
+        print("Erreur lors de l'initialisation de la vidéo : $error");
+      });
+
+    _videoController.addListener(() {
+      if (_videoController.value.hasError) {
+        print("Erreur de lecture vidéo : ${_videoController.value.errorDescription}");
+        _showErrorDialog("Erreur de Lecture Vidéo", "Impossible de lire la vidéo. Veuillez vérifier le format ou réessayer.");
+      }
+    });
   }
 
   @override
   void dispose() {
-    if (widget.formation.videoPath.isNotEmpty) {
+    if (widget.formation.videoPath.isNotEmpty && !_isPdfOpen) {
       _videoController.dispose();
     }
     super.dispose();
   }
 
   void _openPdfViewer() {
+    // Arrêtez la vidéo pour libérer les ressources graphiques
+    if (_videoController.value.isPlaying) {
+      _videoController.pause();
+    }
+    _isPdfOpen = true;
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => PDFView(
           filePath: widget.formation.pdfPath,
+          onRender: (_) {
+            _isPdfOpen = false;
+          },
         ),
+      ),
+    ).then((_) {
+      // Reprend la lecture vidéo si besoin une fois le PDF fermé
+      if (!_isPdfOpen && widget.formation.videoPath.isNotEmpty) {
+        _videoController.play();
+      }
+    }).catchError((e) {
+      print("Erreur lors de l'ouverture du PDF : $e");
+      _showErrorDialog("Erreur", "Impossible d'ouvrir le PDF. Vérifiez le fichier.");
+    });
+  }
+
+  void _showErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("OK"),
+          ),
+        ],
       ),
     );
   }
@@ -56,7 +100,6 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        
         title: Text(
           widget.formation.titre,
           style: TextStyle(color: Colors.black),
@@ -120,7 +163,6 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
               ),
             ),
           ),
-
           // Partie avec vidéo et PDF
           Expanded(
             flex: 7,
@@ -207,15 +249,15 @@ class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
                               fontSize: 15.0,
                             ),
                           ),
-                          SizedBox(height: 8.0),
-                          ElevatedButton.icon(
-                            onPressed: _openPdfViewer,
-                            icon: Icon(Icons.picture_as_pdf),
-                            label: Text('Ouvrir le PDF'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.pinkAccent,
-                            ),
-                          ),
+                          // SizedBox(height: 8.0),
+                          // ElevatedButton.icon(
+                          //   onPressed: _openPdfViewer,
+                          //   icon: Icon(Icons.picture_as_pdf),
+                          //   label: Text('Ouvrir le PDF'),
+                          //   style: ElevatedButton.styleFrom(
+                          //     backgroundColor: Colors.pinkAccent,
+                          //   ),
+                          // ),
                         ],
                       ),
                   ],
